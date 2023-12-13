@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Prediction</title>
+</head>
+<body>
+  <h1>Image Prediction</h1>
+  <input type="file" id="uploadInput" accept="image/*">
+  <button onclick="predictImage()">Predict</button>
+  <img id="imagePreview" src="#" alt="Uploaded Image" style="display: none; max-width: 300px;">
+  <div id="predictions"></div>
+
+  <script>
+    function previewImage(event) {
+      var reader = new FileReader();
+      reader.onload = function() {
+        var img = document.getElementById('imagePreview');
+        img.style.display = 'block';
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+
+    function predictImage() {
+      var input = document.getElementById('uploadInput');
+      var file = input.files[0];
+      var formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/predict', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        var predictionsDiv = document.getElementById('predictions');
+        predictionsDiv.innerHTML = '<h3>Predictions:</h3>';
+        data.predictions.forEach(prediction => {
+          predictionsDiv.innerHTML += `<p>${prediction.label}: ${prediction.confidence.toFixed(4)}</p>`;
+        });
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    document.getElementById('uploadInput').addEventListener('change', previewImage);
+  </script>
+</body>
+</html>
